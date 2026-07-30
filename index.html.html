@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossario Simbolico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#15141a;
+    --bg-elev:#1c1a21;
+    --bg-card:#24222b;
+    --bg-hover:#2b2832;
+    --border:#3a3540;
+    --border-soft:#2a2731;
+    --text:#ece4d3;
+    --text-dim:#a29a8d;
+    --text-faint:#6f6a62;
+    --accent:#c07f3f;
+    --accent-soft:rgba(192,127,63,.15);
+    --accent-strong:#d8944f;
+    --accent2:#5a9a94;
+    --accent2-soft:rgba(90,154,148,.15);
+    --danger:#b25b4f;
+    --danger-soft:rgba(178,91,79,.15);
+    --radius:10px;
+    --font-display:'Fraunces', serif;
+    --font-body:'IBM Plex Sans', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:14.5px;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  ::selection{background:var(--accent-soft);}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;}
+
+  button{
+    font-family:var(--font-body);
+    cursor:pointer;
+  }
+  input, select, textarea{
+    font-family:var(--font-body);
+  }
+
+  /* ---------- Layout scaffolding ---------- */
+  .app{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 24px 60px;
+  }
+
+  header.top{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding-bottom:22px;
+    margin-bottom:22px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .wheel{
+    flex:none;
+    width:46px;height:46px;
+    opacity:.92;
+  }
+  .title-block h1{
+    font-family:var(--font-display);
+    font-weight:500;
+    font-size:26px;
+    margin:0;
+    letter-spacing:.2px;
+    color:var(--text);
+  }
+  .title-block p{
+    margin:2px 0 0;
+    font-size:12.5px;
+    color:var(--text-faint);
+    font-family:var(--font-mono);
+    letter-spacing:.3px;
+  }
+  .top-actions{
+    margin-left:auto;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .btn{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    padding:8px 13px;
+    border-radius:8px;
+    font-size:13px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:border-color .15s, color .15s, background .15s;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--text);}
+  .btn.primary{
+    background:var(--accent-soft);
+    border-color:var(--accent);
+    color:var(--accent-strong);
+  }
+  .btn.primary:hover{background:var(--accent);color:#1b140c;}
+  .btn.ghost{background:transparent;}
+  .btn.danger{border-color:var(--danger);color:var(--danger);}
+  .btn.danger:hover{background:var(--danger);color:#1b1210;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn svg{width:14px;height:14px;flex:none;}
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:16px;
+  }
+  .search-wrap{
+    position:relative;
+    flex:1 1 260px;
+    min-width:220px;
+  }
+  .search-wrap input{
+    width:100%;
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:9px 12px 9px 32px;
+    color:var(--text);
+    font-size:13.5px;
+  }
+  .search-wrap input:focus{outline:none;border-color:var(--accent);}
+  .search-wrap svg{
+    position:absolute;left:11px;top:50%;transform:translateY(-50%);
+    width:14px;height:14px;color:var(--text-faint);
+  }
+  select.filter{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    padding:9px 10px;
+    border-radius:8px;
+    font-size:13px;
+    min-width:150px;
+  }
+  select.filter:focus{outline:none;border-color:var(--accent);}
+
+  /* ---------- Main grid ---------- */
+  .main-grid{
+    display:grid;
+    grid-template-columns:minmax(280px,380px) 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  @media (max-width: 860px){
+    .main-grid{grid-template-columns:1fr;}
+  }
+
+  .list-panel{
+    background:var(--bg-elev);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .list-scroll{
+    max-height:70vh;
+    overflow-y:auto;
+  }
+  .list-empty{
+    padding:36px 20px;
+    text-align:center;
+    color:var(--text-faint);
+    font-size:13px;
+  }
+  .entry-row{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    padding:11px 16px;
+    border-bottom:1px solid var(--border-soft);
+    cursor:pointer;
+    transition:background .12s;
+  }
+  .entry-row:last-child{border-bottom:none;}
+  .entry-row:hover{background:var(--bg-hover);}
+  .entry-row.active{background:var(--accent-soft);}
+  .entry-row .names{flex:1;min-width:0;}
+  .entry-row .nome-it{
+    font-family:var(--font-display);
+    font-size:15.5px;
+    color:var(--text);
+    display:block;
+  }
+  .entry-row .cat-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--accent2);
+    flex:none;
+  }
+  .group-header{
+    padding:9px 16px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    background:var(--bg-card);
+    border-bottom:1px solid var(--border-soft);
+    position:sticky;top:0;
+  }
+
+  .list-footer{
+    padding:10px 16px;
+    border-top:1px solid var(--border-soft);
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--text-faint);
+    display:flex;
+    justify-content:space-between;
+  }
+
+  /* ---------- Detail panel ---------- */
+  .detail-panel{
+    background:var(--bg-elev);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius);
+    padding:26px 28px;
+    min-height:300px;
+  }
+  .detail-empty{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:340px;
+    color:var(--text-faint);
+    text-align:center;
+    gap:10px;
+  }
+  .detail-empty svg{width:60px;height:60px;opacity:.35;}
+  .detail-empty span{font-size:13px;}
+
+  .field-label{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    color:var(--text-faint);
+    margin-bottom:6px;
+    display:block;
+  }
+  .name-row{
+    display:flex;
+    gap:14px;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+  .name-field{flex:1;min-width:180px;}
+  .name-field input{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--border);
+    color:var(--text);
+    font-family:var(--font-display);
+    font-size:22px;
+    padding:4px 2px 8px;
+  }
+  .name-field input:focus{outline:none;border-color:var(--accent);}
+
+  textarea{
+    width:100%;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--text);
+    padding:10px 12px;
+    font-size:13.5px;
+    line-height:1.55;
+    resize:vertical;
+  }
+  textarea:focus{outline:none;border-color:var(--accent);}
+  .field-block{margin-bottom:18px;}
+
+  .tag-toggle-group{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .tag-toggle{
+    font-size:12px;
+    padding:5px 11px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    background:var(--bg-card);
+    color:var(--text-faint);
+  }
+  .tag-toggle.on{
+    border-color:var(--accent2);
+    color:var(--accent2);
+    background:var(--accent2-soft);
+  }
+  .meta-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:22px;
+    padding-top:16px;
+    border-top:1px solid var(--border-soft);
+  }
+  .meta-date{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--text-faint);
+  }
+  .detail-actions{display:flex;gap:8px;}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(10,9,12,.72);
+    display:flex;align-items:center;justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .modal{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:12px;
+    max-width:560px;
+    width:100%;
+    max-height:85vh;
+    overflow-y:auto;
+    padding:24px 26px;
+  }
+  .modal h2{
+    font-family:var(--font-display);
+    font-weight:500;
+    font-size:19px;
+    margin:0 0 4px;
+  }
+  .modal .sub{
+    color:var(--text-faint);
+    font-size:12.5px;
+    margin-bottom:18px;
+  }
+  .modal-close{
+    position:absolute;
+  }
+  .tax-col{margin-bottom:20px;}
+  .tax-col h3{
+    font-family:var(--font-mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color:var(--text-faint);
+    margin:0 0 10px;
+  }
+  .tax-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 0;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .tax-item input[type=text]{
+    flex:1;
+    background:transparent;
+    border:none;
+    color:var(--text);
+    font-size:13px;
+    padding:4px 2px;
+  }
+  .tax-item input[type=text]:focus{outline:none;}
+  .tax-item .count{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    color:var(--text-faint);
+  }
+  .icon-btn{
+    background:none;border:none;color:var(--text-faint);
+    padding:4px;border-radius:5px;display:flex;
+  }
+  .icon-btn:hover{color:var(--danger);background:var(--danger-soft);}
+  .icon-btn svg{width:13px;height:13px;}
+  .add-row{
+    display:flex;gap:8px;margin-top:10px;
+  }
+  .add-row input{
+    flex:1;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:7px;
+    padding:7px 10px;
+    color:var(--text);
+    font-size:13px;
+  }
+  .add-row input:focus{outline:none;border-color:var(--accent);}
+
+  /* conflict table */
+  .conflict-item{
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-bottom:10px;
+  }
+  .conflict-item .nm{font-family:var(--font-display);font-size:15px;margin-bottom:6px;}
+  .conflict-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .conflict-cols .old, .conflict-cols .new{
+    font-size:12px;color:var(--text-dim);
+  }
+  .conflict-cols .lbl{
+    font-family:var(--font-mono);font-size:10px;color:var(--text-faint);
+    text-transform:uppercase;display:block;margin-bottom:3px;
+  }
+
+  .toast{
+    position:fixed;
+    bottom:24px;left:50%;
+    transform:translateX(-50%);
+    background:var(--bg-card);
+    border:1px solid var(--accent);
+    color:var(--text);
+    padding:10px 18px;
+    border-radius:8px;
+    font-size:13px;
+    z-index:200;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+
+  .hint{
+    font-size:11.5px;
+    color:var(--text-faint);
+    margin-top:8px;
+    line-height:1.5;
+  }
+
+  input[type=file]{display:none;}
+
+  /* ---------- Print ---------- */
+  #printArea{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{
+      display:block;
+      position:absolute;top:0;left:0;width:100%;
+      background:#fff;color:#111;
+      font-family:var(--font-body);
+      padding:20px;
+    }
+    #printArea h1{
+      font-family:var(--font-display);
+      font-size:20px;border-bottom:1px solid #999;padding-bottom:10px;
+    }
+    .print-entry{margin-bottom:12px;break-inside:avoid;}
+    .print-entry .pn{font-family:var(--font-display);font-size:14.5px;font-weight:600;}
+    .print-entry .pd{font-size:12.5px;margin-top:2px;line-height:1.45;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <header class="top">
+    <svg class="wheel" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="20" stroke="#c07f3f" stroke-width="1.4"/>
+      <circle cx="24" cy="24" r="6" stroke="#5a9a94" stroke-width="1.2"/>
+      <line x1="24" y1="4" x2="24" y2="14" stroke="#c07f3f" stroke-width="1.2"/>
+      <line x1="24" y1="34" x2="24" y2="44" stroke="#c07f3f" stroke-width="1.2"/>
+      <line x1="4" y1="24" x2="14" y2="24" stroke="#c07f3f" stroke-width="1.2"/>
+      <line x1="34" y1="24" x2="44" y2="24" stroke="#c07f3f" stroke-width="1.2"/>
+      <circle cx="24" cy="4" r="1.6" fill="#c07f3f"/>
+      <circle cx="24" cy="44" r="1.6" fill="#c07f3f"/>
+      <circle cx="4" cy="24" r="1.6" fill="#c07f3f"/>
+      <circle cx="44" cy="24" r="1.6" fill="#c07f3f"/>
+    </svg>
+    <div class="title-block">
+      <h1>Glossario Simbolico</h1>
+      <p>SIMBOLOGIA SCIAMANICA — USO PERSONALE</p>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="btnTax" title="Gestisci categorie e tradizioni">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+        Tassonomie
+      </button>
+      <button class="btn" id="btnImportExcel">Importa Excel</button>
+      <button class="btn" id="btnImportJson">Importa JSON</button>
+      <button class="btn" id="btnExportJson">Esporta backup</button>
+      <button class="btn" id="btnPrint">Stampa</button>
+      <button class="btn primary" id="btnNew">+ Nuova voce</button>
+      <input type="file" id="fileExcel" accept=".xlsx,.xls">
+      <input type="file" id="fileJson" accept=".json">
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Cerca per nome o nel testo della definizione…">
+    </div>
+    <select class="filter" id="categoryFilter"></select>
+    <select class="filter" id="sortBy">
+      <option value="alfabetico">Ordina: alfabetico</option>
+      <option value="categoria">Ordina: per categoria</option>
+      <option value="data">Ordina: per data inserimento</option>
+    </select>
+  </div>
+
+  <div class="main-grid">
+    <div class="list-panel">
+      <div class="list-scroll" id="listScroll"></div>
+      <div class="list-footer">
+        <span id="countLabel">0 voci</span>
+        <span id="filterLabel"></span>
+      </div>
+    </div>
+    <div class="detail-panel" id="detailPanel"></div>
+  </div>
+
+</div>
+
+<div id="printArea"></div>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+(function(){
+
+  /* ============ DEFAULT DATA ============ */
+  var DEFAULT_CATEGORIE = ["Animali","Piante","Minerali ed elementi naturali","Elementi cosmici","Elementi del paesaggio","Figure archetipiche","Oggetti rituali","Colori","Numeri"];
+  var DEFAULT_TRADIZIONI = ["Sciamanesimo siberiano/mongolo","Nativo-americano","Andino/Sudamericano","Amazzonico","Celtico/Nord-europeo","Africano","Aborigeno australiano","Asiatico","Neo-sciamanesimo","Non specificata"];
+  var STORAGE_KEY = "glossarioSimbolico.v1";
+
+  /* ============ STATE ============ */
+  var state = null;
+  var ui = {
+    searchTerm: "",
+    categoryFilter: "Tutte",
+    sortBy: "alfabetico",
+    selectedEntryId: null,
+    editingBuffer: null,   // working copy of entry being viewed/edited
+    isNew: false
+  };
+
+  function uid(){
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+  }
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw){
+        var parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.entries)) return parsed;
+      }
+    }catch(e){ console.error("Errore caricamento stato:", e); }
+    return { entries: [], categorie: DEFAULT_CATEGORIE.slice(), tradizioni: DEFAULT_TRADIZIONI.slice() };
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){
+      console.error("Errore salvataggio stato:", e);
+      showToast("Errore nel salvataggio locale — esporta un backup manuale.");
+    }
+  }
+
+  state = loadState();
+
+  /* ============ UTIL ============ */
+  function escapeHtml(s){
+    if (s == null) return "";
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function formatDate(iso){
+    if (!iso) return "—";
+    var d = new Date(iso);
+    if (isNaN(d)) return "—";
+    var pad = function(n){ return n<10 ? "0"+n : ""+n; };
+    return pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear();
+  }
+
+  function showToast(msg, ms){
+    var root = document.getElementById("toastRoot");
+    root.innerHTML = '<div class="toast">'+escapeHtml(msg)+'</div>';
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ root.innerHTML = ""; }, ms || 3200);
+  }
+
+  function normalize(s){
+    return (s || "").toString().trim().toLowerCase();
+  }
+
+  /* ============ RENDER: TOOLBAR / FILTERS ============ */
+  function renderCategoryFilterOptions(){
+    var sel = document.getElementById("categoryFilter");
+    var counts = {};
+    state.categorie.forEach(function(c){ counts[c] = 0; });
+    state.entries.forEach(function(e){
+      (e.categorie || []).forEach(function(c){
+        if (counts[c] == null) counts[c] = 0;
+        counts[c]++;
+      });
+    });
+    var totalCount = state.entries.length;
+    var opts = ['<option value="Tutte">Tutte le categorie ('+totalCount+')</option>'];
+    state.categorie.forEach(function(c){
+      opts.push('<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+' ('+(counts[c]||0)+')</option>');
+    });
+    sel.innerHTML = opts.join("");
+    sel.value = ui.categoryFilter;
+  }
+
+  /* ============ FILTER / SORT ============ */
+  function getFilteredSorted(){
+    var term = normalize(ui.searchTerm);
+    var list = state.entries.filter(function(e){
+      var matchesTerm = !term ||
+        normalize(e.nome_it).indexOf(term) !== -1 ||
+        normalize(e.definizione).indexOf(term) !== -1;
+      var matchesCat = ui.categoryFilter === "Tutte" || (e.categorie||[]).indexOf(ui.categoryFilter) !== -1;
+      return matchesTerm && matchesCat;
+    });
+
+    if (ui.sortBy === "alfabetico"){
+      list.sort(function(a,b){ return normalize(a.nome_it).localeCompare(normalize(b.nome_it)); });
+    } else if (ui.sortBy === "data"){
+      list.sort(function(a,b){ return new Date(b.data_inserimento) - new Date(a.data_inserimento); });
+    } else if (ui.sortBy === "categoria"){
+      list.sort(function(a,b){
+        var ca = (a.categorie||[])[0] || "zzz_nessuna";
+        var cb = (b.categorie||[])[0] || "zzz_nessuna";
+        var cmp = ca.localeCompare(cb);
+        if (cmp !== 0) return cmp;
+        return normalize(a.nome_it).localeCompare(normalize(b.nome_it));
+      });
+    }
+    return list;
+  }
+
+  /* ============ RENDER: LIST ============ */
+  function renderList(){
+    var list = getFilteredSorted();
+    var container = document.getElementById("listScroll");
+    document.getElementById("countLabel").textContent = list.length + (list.length===1? " voce" : " voci");
+    document.getElementById("filterLabel").textContent = ui.categoryFilter !== "Tutte" ? ("filtro: " + ui.categoryFilter) : "";
+
+    if (list.length === 0){
+      container.innerHTML = '<div class="list-empty">Nessuna voce corrisponde alla ricerca/filtro.<br>Aggiungine una con “+ Nuova voce”.</div>';
+      return;
+    }
+
+    var html = "";
+    if (ui.sortBy === "categoria"){
+      var lastGroup = null;
+      list.forEach(function(e){
+        var g = (e.categorie||[])[0] || "Senza categoria";
+        if (g !== lastGroup){
+          html += '<div class="group-header">'+escapeHtml(g)+'</div>';
+          lastGroup = g;
+        }
+        html += entryRowHtml(e);
+      });
+    } else {
+      list.forEach(function(e){ html += entryRowHtml(e); });
+    }
+    container.innerHTML = html;
+
+    container.querySelectorAll(".entry-row").forEach(function(row){
+      row.addEventListener("click", function(){
+        ui.selectedEntryId = row.getAttribute("data-id");
+        ui.isNew = false;
+        ui.editingBuffer = null;
+        renderAll();
+      });
+    });
+  }
+
+  function entryRowHtml(e){
+    var active = e.id === ui.selectedEntryId ? " active" : "";
+    return '<div class="entry-row'+active+'" data-id="'+e.id+'">'+
+      '<span class="cat-dot"></span>'+
+      '<span class="names">'+
+        '<span class="nome-it">'+escapeHtml(e.nome_it || "(senza nome)")+'</span>'+
+      '</span>'+
+    '</div>';
+  }
+
+  /* ============ RENDER: DETAIL ============ */
+  function blankEntry(){
+    return { id: uid(), nome_it:"", definizione:"", note_personali:"", categorie:[], tradizioni:["Non specificata"], data_inserimento: new Date().toISOString() };
+  }
+
+  function renderDetail(){
+    var panel = document.getElementById("detailPanel");
+
+    if (ui.isNew && ui.editingBuffer){
+      panel.innerHTML = detailFormHtml(ui.editingBuffer, true);
+      bindDetailForm(true);
+      return;
+    }
+
+    if (!ui.selectedEntryId){
+      panel.innerHTML = '<div class="detail-empty">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 116 0c0 2-3 2.5-3 5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg>'+
+        '<span>Seleziona una voce dall’elenco, oppure creane una nuova.</span>'+
+      '</div>';
+      return;
+    }
+
+    var entry = state.entries.find(function(e){ return e.id === ui.selectedEntryId; });
+    if (!entry){
+      ui.selectedEntryId = null;
+      renderDetail();
+      return;
+    }
+    ui.editingBuffer = JSON.parse(JSON.stringify(entry));
+    panel.innerHTML = detailFormHtml(ui.editingBuffer, false);
+    bindDetailForm(false);
+  }
+
+  function tagToggleGroupHtml(all, selected, groupName){
+    return '<div class="tag-toggle-group" data-group="'+groupName+'">' +
+      all.map(function(t){
+        var on = selected.indexOf(t) !== -1;
+        return '<button type="button" class="tag-toggle'+(on?" on":"")+'" data-tag="'+escapeHtml(t)+'">'+escapeHtml(t)+'</button>';
+      }).join("") +
+    '</div>';
+  }
+
+  function detailFormHtml(e, isNew){
+    return ''+
+    '<div class="name-row">'+
+      '<div class="name-field">'+
+        '<span class="field-label">Nome</span>'+
+        '<input type="text" id="f_nome_it" value="'+escapeHtml(e.nome_it)+'" placeholder="es. Orso">'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="field-block">'+
+      '<span class="field-label">Definizione / significato</span>'+
+      '<textarea id="f_definizione" rows="14" placeholder="Significato simbolico…">'+escapeHtml(e.definizione)+'</textarea>'+
+    '</div>'+
+
+    '<div class="field-block">'+
+      '<span class="field-label">Note personali</span>'+
+      '<textarea id="f_note" rows="3" placeholder="Associazioni, riflessioni, contesto d’uso…">'+escapeHtml(e.note_personali)+'</textarea>'+
+    '</div>'+
+
+    '<div class="field-block">'+
+      '<span class="field-label">Categorie</span>'+
+      tagToggleGroupHtml(state.categorie, e.categorie||[], "categorie")+
+    '</div>'+
+
+    '<div class="field-block">'+
+      '<span class="field-label">Tradizioni / origine culturale</span>'+
+      tagToggleGroupHtml(state.tradizioni, e.tradizioni||[], "tradizioni")+
+    '</div>'+
+
+    '<div class="meta-row">'+
+      '<span class="meta-date">Inserita il '+formatDate(e.data_inserimento)+'</span>'+
+      '<div class="detail-actions">'+
+        (isNew ? '' : '<button class="btn danger" id="btnDelete">Elimina</button>')+
+        '<button class="btn primary" id="btnSave">Salva</button>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function bindDetailForm(isNew){
+    var panel = document.getElementById("detailPanel");
+
+    panel.querySelectorAll(".tag-toggle").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var group = btn.closest(".tag-toggle-group").getAttribute("data-group");
+        var tag = btn.getAttribute("data-tag");
+        var arr = ui.editingBuffer[group] || [];
+        var idx = arr.indexOf(tag);
+        if (idx === -1) arr.push(tag); else arr.splice(idx,1);
+        ui.editingBuffer[group] = arr;
+        btn.classList.toggle("on");
+      });
+    });
+
+    var saveBtn = document.getElementById("btnSave");
+    if (saveBtn){
+      saveBtn.addEventListener("click", function(){
+        var buf = ui.editingBuffer;
+        buf.nome_it = document.getElementById("f_nome_it").value.trim();
+        buf.definizione = document.getElementById("f_definizione").value.trim();
+        buf.note_personali = document.getElementById("f_note").value.trim();
+
+        if (!buf.nome_it){
+          showToast("Il nome in italiano è obbligatorio.");
+          return;
+        }
+
+        if (isNew){
+          state.entries.push(buf);
+          ui.isNew = false;
+          ui.selectedEntryId = buf.id;
+          showToast("Voce aggiunta: " + buf.nome_it);
+        } else {
+          var idx = state.entries.findIndex(function(x){ return x.id === buf.id; });
+          if (idx !== -1) state.entries[idx] = buf;
+          showToast("Voce aggiornata.");
+        }
+        saveState();
+        renderAll();
+      });
+    }
+
+    var delBtn = document.getElementById("btnDelete");
+    if (delBtn){
+      delBtn.addEventListener("click", function(){
+        if (!confirm("Eliminare definitivamente questa voce?")) return;
+        state.entries = state.entries.filter(function(x){ return x.id !== ui.editingBuffer.id; });
+        ui.selectedEntryId = null;
+        saveState();
+        renderAll();
+        showToast("Voce eliminata.");
+      });
+    }
+  }
+
+  /* ============ MODAL: TASSONOMIE ============ */
+  function openTaxonomyModal(){
+    var root = document.getElementById("modalRoot");
+    root.innerHTML = '<div class="overlay" id="taxOverlay"><div class="modal">'+
+      '<h2>Gestisci tassonomie</h2>'+
+      '<p class="sub">Aggiungi, rinomina o elimina categorie e tradizioni. Le modifiche si riflettono su tutte le voci.</p>'+
+      '<div class="tax-col" id="colCategorie"></div>'+
+      '<div class="tax-col" id="colTradizioni"></div>'+
+      '<div class="detail-actions" style="justify-content:flex-end;"><button class="btn" id="closeTax">Chiudi</button></div>'+
+    '</div></div>';
+
+    renderTaxColumn("colCategorie", "categorie", "Categorie");
+    renderTaxColumn("colTradizioni", "tradizioni", "Tradizioni");
+
+    document.getElementById("closeTax").addEventListener("click", closeModal);
+    document.getElementById("taxOverlay").addEventListener("click", function(ev){
+      if (ev.target.id === "taxOverlay") closeModal();
+    });
+  }
+
+  function renderTaxColumn(containerId, key, label){
+    var container = document.getElementById(containerId);
+    var counts = {};
+    state.entries.forEach(function(e){
+      (e[key]||[]).forEach(function(t){ counts[t] = (counts[t]||0)+1; });
+    });
+
+    var html = '<h3>'+label+'</h3>';
+    state[key].forEach(function(item, i){
+      html += '<div class="tax-item" data-idx="'+i+'">'+
+        '<input type="text" value="'+escapeHtml(item)+'" data-orig="'+escapeHtml(item)+'">'+
+        '<span class="count">'+(counts[item]||0)+'</span>'+
+        '<button class="icon-btn" data-action="delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg></button>'+
+      '</div>';
+    });
+    html += '<div class="add-row"><input type="text" placeholder="Nuova voce…" id="add_'+key+'"><button class="btn" id="addBtn_'+key+'">Aggiungi</button></div>';
+    container.innerHTML = html;
+
+    container.querySelectorAll('.tax-item input[type=text]').forEach(function(inp){
+      inp.addEventListener("change", function(){
+        var orig = inp.getAttribute("data-orig");
+        var val = inp.value.trim();
+        if (!val || val === orig) { inp.value = orig; return; }
+        renameTaxonomyValue(key, orig, val);
+        renderTaxColumn(containerId, key, label);
+        renderAll();
+      });
+    });
+    container.querySelectorAll('.icon-btn[data-action=delete]').forEach(function(btn, i){
+      btn.addEventListener("click", function(){
+        var item = state[key][i];
+        var n = counts[item] || 0;
+        var msg = n > 0 ? ('Eliminare "'+item+'"? Verrà rimossa da '+n+' voce/i.') : ('Eliminare "'+item+'"?');
+        if (!confirm(msg)) return;
+        removeTaxonomyValue(key, item);
+        renderTaxColumn(containerId, key, label);
+        renderAll();
+      });
+    });
+    document.getElementById("addBtn_"+key).addEventListener("click", function(){
+      var inp = document.getElementById("add_"+key);
+      var val = inp.value.trim();
+      if (!val) return;
+      if (state[key].indexOf(val) !== -1){ showToast("Voce già presente."); return; }
+      state[key].push(val);
+      saveState();
+      renderTaxColumn(containerId, key, label);
+      renderAll();
+    });
+  }
+
+  function renameTaxonomyValue(key, oldVal, newVal){
+    var idx = state[key].indexOf(oldVal);
+    if (idx !== -1) state[key][idx] = newVal;
+    state.entries.forEach(function(e){
+      var arr = e[key] || [];
+      var i = arr.indexOf(oldVal);
+      if (i !== -1) arr[i] = newVal;
+    });
+    if (ui.categoryFilter === oldVal) ui.categoryFilter = newVal;
+    saveState();
+  }
+
+  function removeTaxonomyValue(key, val){
+    state[key] = state[key].filter(function(x){ return x !== val; });
+    state.entries.forEach(function(e){
+      e[key] = (e[key]||[]).filter(function(x){ return x !== val; });
+    });
+    if (key === "categorie" && ui.categoryFilter === val) ui.categoryFilter = "Tutte";
+    saveState();
+  }
+
+  function closeModal(){
+    document.getElementById("modalRoot").innerHTML = "";
+  }
+
+  /* ============ IMPORT: EXCEL ============ */
+  function handleExcelFile(file){
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        var data = new Uint8Array(ev.target.result);
+        var wb = XLSX.read(data, {type:"array"});
+        var sheet = wb.Sheets[wb.SheetNames[0]];
+        var rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
+
+        var newEntries = [];
+        var conflicts = []; // {existingEntry, incoming}
+        var skippedNoName = 0;
+
+        rows.forEach(function(row){
+          var nomeIt = (row["Element Italian"] || "").toString().trim();
+          var descr = (row["Descrizione"] || "").toString().trim();
+          if (!nomeIt){ skippedNoName++; return; }
+
+          var incoming = {
+            id: uid(),
+            nome_it: nomeIt,
+            definizione: descr,
+            note_personali: "",
+            categorie: [],
+            tradizioni: ["Non specificata"],
+            data_inserimento: new Date().toISOString()
+          };
+
+          var existing = state.entries.find(function(e){ return normalize(e.nome_it) === normalize(nomeIt); });
+          if (existing){
+            conflicts.push({ existingEntry: existing, incoming: incoming });
+          } else {
+            newEntries.push(incoming);
+          }
+        });
+
+        // add non-conflicting rows right away
+        state.entries = state.entries.concat(newEntries);
+        saveState();
+        renderAll();
+
+        if (conflicts.length > 0){
+          openConflictModal(conflicts, newEntries.length, skippedNoName);
+        } else {
+          showToast(newEntries.length + " voci importate" + (skippedNoName? (", "+skippedNoName+" righe senza nome ignorate.") : "."));
+        }
+      } catch(err){
+        console.error(err);
+        showToast("Errore nella lettura del file Excel.");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function openConflictModal(conflicts, addedCount, skippedNoName){
+    var root = document.getElementById("modalRoot");
+    var itemsHtml = conflicts.map(function(c, i){
+      return '<div class="conflict-item">'+
+        '<div class="nm">'+escapeHtml(c.incoming.nome_it)+'</div>'+
+        '<div class="conflict-cols">'+
+          '<div class="old"><span class="lbl">Definizione attuale</span>'+escapeHtml(c.existingEntry.definizione || "(vuota)")+'</div>'+
+          '<div class="new"><span class="lbl">Definizione nel file</span>'+escapeHtml(c.incoming.definizione || "(vuota)")+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+
+    root.innerHTML = '<div class="overlay" id="conflictOverlay"><div class="modal">'+
+      '<h2>Voci già presenti</h2>'+
+      '<p class="sub">'+conflicts.length+' voce/i del file hanno lo stesso nome italiano di voci già nel glossario. '+addedCount+' nuove voci sono già state aggiunte.'+(skippedNoName?(' '+skippedNoName+' righe senza nome sono state ignorate.'):'')+'</p>'+
+      itemsHtml +
+      '<div class="detail-actions" style="justify-content:flex-end;gap:10px;">'+
+        '<button class="btn" id="skipAll">Ignora tutti (mantieni attuali)</button>'+
+        '<button class="btn primary" id="overwriteAll">Sovrascrivi tutti</button>'+
+      '</div>'+
+    '</div></div>';
+
+    document.getElementById("skipAll").addEventListener("click", function(){
+      closeModal();
+      showToast("Conflitti ignorati: mantenute le definizioni attuali.");
+    });
+    document.getElementById("overwriteAll").addEventListener("click", function(){
+      conflicts.forEach(function(c){
+        var idx = state.entries.findIndex(function(e){ return e.id === c.existingEntry.id; });
+        if (idx !== -1){
+          var kept = state.entries[idx];
+          kept.definizione = c.incoming.definizione;
+        }
+      });
+      saveState();
+      renderAll();
+      closeModal();
+      showToast(conflicts.length + " voci sovrascritte.");
+    });
+  }
+
+  /* ============ IMPORT / EXPORT: JSON ============ */
+  function handleJsonFile(file){
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        var parsed = JSON.parse(ev.target.result);
+        if (!parsed || !Array.isArray(parsed.entries)){
+          showToast("File JSON non valido per questo glossario.");
+          return;
+        }
+
+        // unisce le tassonomie del file importato con quelle attuali (senza duplicati)
+        ["categorie","tradizioni"].forEach(function(key){
+          (parsed[key]||[]).forEach(function(val){
+            if (state[key].indexOf(val) === -1) state[key].push(val);
+          });
+        });
+
+        var incomingEntries = parsed.entries || [];
+        var newEntries = [];
+        var conflicts = [];
+
+        incomingEntries.forEach(function(incoming){
+          if (!incoming.nome_it) return;
+          var existing = state.entries.find(function(e){ return normalize(e.nome_it) === normalize(incoming.nome_it); });
+          if (existing){
+            conflicts.push({ existingEntry: existing, incoming: incoming });
+          } else {
+            newEntries.push({
+              id: uid(),
+              nome_it: incoming.nome_it || "",
+              definizione: incoming.definizione || "",
+              note_personali: incoming.note_personali || "",
+              categorie: incoming.categorie || [],
+              tradizioni: incoming.tradizioni && incoming.tradizioni.length ? incoming.tradizioni : ["Non specificata"],
+              data_inserimento: incoming.data_inserimento || new Date().toISOString()
+            });
+          }
+        });
+
+        state.entries = state.entries.concat(newEntries);
+        saveState();
+        renderAll();
+
+        if (conflicts.length > 0){
+          openJsonConflictModal(conflicts, newEntries.length);
+        } else {
+          showToast(newEntries.length + " voci aggiunte dal file JSON.");
+        }
+      } catch(err){
+        console.error(err);
+        showToast("Errore nella lettura del file JSON.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function openJsonConflictModal(conflicts, addedCount){
+    var root = document.getElementById("modalRoot");
+    var itemsHtml = conflicts.map(function(c){
+      return '<div class="conflict-item">'+
+        '<div class="nm">'+escapeHtml(c.incoming.nome_it)+'</div>'+
+        '<div class="conflict-cols">'+
+          '<div class="old"><span class="lbl">Definizione attuale</span>'+escapeHtml(c.existingEntry.definizione || "(vuota)")+'</div>'+
+          '<div class="new"><span class="lbl">Definizione nel file</span>'+escapeHtml(c.incoming.definizione || "(vuota)")+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+
+    root.innerHTML = '<div class="overlay" id="jsonConflictOverlay"><div class="modal">'+
+      '<h2>Voci già presenti</h2>'+
+      '<p class="sub">'+conflicts.length+' voce/i del file JSON hanno lo stesso nome italiano di voci già nel glossario. '+addedCount+' nuove voci sono già state aggiunte.</p>'+
+      itemsHtml +
+      '<div class="detail-actions" style="justify-content:flex-end;gap:10px;">'+
+        '<button class="btn" id="jsonSkipAll">Ignora tutti (mantieni attuali)</button>'+
+        '<button class="btn primary" id="jsonOverwriteAll">Sovrascrivi tutti</button>'+
+      '</div>'+
+    '</div></div>';
+
+    document.getElementById("jsonSkipAll").addEventListener("click", function(){
+      closeModal();
+      showToast("Conflitti ignorati: mantenute le voci attuali.");
+    });
+    document.getElementById("jsonOverwriteAll").addEventListener("click", function(){
+      conflicts.forEach(function(c){
+        var idx = state.entries.findIndex(function(e){ return e.id === c.existingEntry.id; });
+        if (idx !== -1){
+          state.entries[idx] = {
+            id: c.existingEntry.id,
+            nome_it: c.incoming.nome_it || c.existingEntry.nome_it,
+            definizione: c.incoming.definizione,
+            note_personali: c.incoming.note_personali || c.existingEntry.note_personali,
+            categorie: c.incoming.categorie && c.incoming.categorie.length ? c.incoming.categorie : c.existingEntry.categorie,
+            tradizioni: c.incoming.tradizioni && c.incoming.tradizioni.length ? c.incoming.tradizioni : c.existingEntry.tradizioni,
+            data_inserimento: c.existingEntry.data_inserimento
+          };
+        }
+      });
+      saveState();
+      renderAll();
+      closeModal();
+      showToast(conflicts.length + " voci sovrascritte.");
+    });
+  }
+
+  function exportJson(){
+    var payload = JSON.stringify(state, null, 2);
+    var blob = new Blob([payload], {type:"application/json"});
+    var url = URL.createObjectURL(blob);
+    var d = new Date();
+    var pad = function(n){ return n<10?"0"+n:""+n; };
+    var fname = "glossario_simbolico_backup_"+d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+".json";
+    var a = document.createElement("a");
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("Backup esportato: " + fname);
+  }
+
+  /* ============ STAMPA ============ */
+  function preparePrint(){
+    var list = state.entries.slice().sort(function(a,b){
+      return normalize(a.nome_it).localeCompare(normalize(b.nome_it));
+    });
+    var html = '<h1>Glossario Simbolico</h1>';
+    list.forEach(function(e){
+      html += '<div class="print-entry">'+
+        '<span class="pn">'+escapeHtml(e.nome_it)+'</span>'+
+        '<div class="pd">'+escapeHtml(e.definizione || "")+'</div>'+
+      '</div>';
+    });
+    document.getElementById("printArea").innerHTML = html;
+    window.print();
+  }
+
+  /* ============ MASTER RENDER ============ */
+  function renderAll(){
+    renderCategoryFilterOptions();
+    renderList();
+    renderDetail();
+  }
+
+  /* ============ EVENTS ============ */
+  document.getElementById("searchInput").addEventListener("input", function(e){
+    ui.searchTerm = e.target.value;
+    renderList();
+  });
+  document.getElementById("categoryFilter").addEventListener("change", function(e){
+    ui.categoryFilter = e.target.value;
+    renderList();
+  });
+  document.getElementById("sortBy").addEventListener("change", function(e){
+    ui.sortBy = e.target.value;
+    renderList();
+  });
+
+  document.getElementById("btnNew").addEventListener("click", function(){
+    ui.isNew = true;
+    ui.selectedEntryId = null;
+    ui.editingBuffer = blankEntry();
+    renderDetail();
+  });
+
+  document.getElementById("btnTax").addEventListener("click", openTaxonomyModal);
+
+  document.getElementById("btnImportExcel").addEventListener("click", function(){
+    document.getElementById("fileExcel").click();
+  });
+  document.getElementById("fileExcel").addEventListener("change", function(e){
+    if (e.target.files[0]) handleExcelFile(e.target.files[0]);
+    e.target.value = "";
+  });
+
+  document.getElementById("btnImportJson").addEventListener("click", function(){
+    document.getElementById("fileJson").click();
+  });
+  document.getElementById("fileJson").addEventListener("change", function(e){
+    if (e.target.files[0]) handleJsonFile(e.target.files[0]);
+    e.target.value = "";
+  });
+
+  document.getElementById("btnExportJson").addEventListener("click", exportJson);
+  document.getElementById("btnPrint").addEventListener("click", preparePrint);
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") closeModal();
+  });
+
+  /* ============ INIT ============ */
+  renderAll();
+
+})();
+</script>
+</body>
+</html>
